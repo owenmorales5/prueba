@@ -5,20 +5,15 @@ import java.time.LocalDateTime;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToOne;
 
 @Entity
 public class Cita {
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    @ManyToOne
-    private Doctor doctor;
-
-    @ManyToOne
-    private Consultorio consultorio;
 
     private String nombrePaciente;
 
@@ -26,6 +21,12 @@ public class Cita {
     private LocalDateTime horarioConsulta;
 
     private boolean cancelada = false;
+
+    @ManyToOne
+    private Doctor doctor;
+
+    @ManyToOne
+    private Consultorio consultorio;
 
     public Long getId() {
         return id;
