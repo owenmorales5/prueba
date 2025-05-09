@@ -9,7 +9,7 @@ import com.hospital.api.entities.Cita;
 
 public interface CitaRepository extends JpaRepository<Cita, Long> {
     List<Cita> findByDoctorIdAndHorarioConsultaBetween(Long doctorId, LocalDateTime start, LocalDateTime end);
-    List<Cita> findByConsultorioIdAndHorarioConsulta(LocalDateTime horarioConsulta);
+    List<Cita> findByConsultorioIdAndHorarioConsulta(Long doctorId, LocalDateTime horarioConsulta);
     List<Cita> findByNombrePacienteAndHorarioConsultaBetween(String nombrePaciente, LocalDateTime start, LocalDateTime end);
 
 }

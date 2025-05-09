@@ -2,6 +2,7 @@ package com.hospital.api.entities;
 
 import java.time.LocalDateTime;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
@@ -9,7 +10,8 @@ import jakarta.persistence.ManyToOne;
 
 @Entity
 public class Cita {
-    @Id @GeneratedValue
+    @Id
+    @GeneratedValue
     private Long id;
 
     @ManyToOne
@@ -20,6 +22,7 @@ public class Cita {
 
     private String nombrePaciente;
 
+    @Column(nullable = false)
     private LocalDateTime horarioConsulta;
 
     private boolean cancelada = false;

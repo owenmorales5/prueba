@@ -1,13 +1,19 @@
 package com.hospital.api.services;
 
+import java.time.Duration;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.hospital.api.dtos.CreateCitaDto;
 import com.hospital.api.entities.Cita;
+import com.hospital.api.entities.Consultorio;
+import com.hospital.api.entities.Doctor;
 import com.hospital.api.repositories.CitaRepository;
 import com.hospital.api.repositories.ConsultorioRepository;
 import com.hospital.api.repositories.DoctorRepository;
@@ -18,7 +24,7 @@ public class CitasService {
     @Autowired private DoctorRepository doctorRepo;
     @Autowired private ConsultorioRepository consultorioRepo;
 
-    public Cita crearCita(CitaDto dto) {
+    public Cita crearCita(CreateCitaDto dto) {
         Doctor doctor = doctorRepo.findById(dto.doctorId)
             .orElseThrow(() -> new RuntimeException("Doctor no encontrado"));
 
@@ -29,8 +35,8 @@ public class CitasService {
         LocalDateTime inicioDia = horario.toLocalDate().atStartOfDay();
         LocalDateTime finDia = inicioDia.plusDays(1);
 
-        // Reglas
-        if (!citaRepo.findByConsultorioIdAndHorarioConsulta(horario).isEmpty())
+
+        if (!citaRepo.findByConsultorioIdAndHorarioConsulta(dto.consultorioId, horario).isEmpty())
             throw new RuntimeException("Consultorio ocupado en ese horario");
 
         if (!citaRepo.findByDoctorIdAndHorarioConsultaBetween(doctor.getId(), horario, horario.plusMinutes(59)).isEmpty())
@@ -77,8 +83,8 @@ public class CitasService {
         }
     }
 
-    public void editarCita(Long id, CitaDto nuevo) {
-        cancelarCita(id); // Cancela la anterior
-        crearCita(nuevo); // Crea la nueva si pasa validaciones
+    public void editarCita(Long id, CreateCitaDto nuevo) {
+        cancelarCita(id); 
+        crearCita(nuevo); 
     }
 }
