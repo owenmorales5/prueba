@@ -20,38 +20,42 @@ import com.hospital.api.repositories.DoctorRepository;
 
 @Service
 public class CitasService {
-    @Autowired private CitaRepository citaRepo;
-    @Autowired private DoctorRepository doctorRepo;
-    @Autowired private ConsultorioRepository consultorioRepo;
+    @Autowired
+    private CitaRepository citaRepo;
+    @Autowired
+    private DoctorRepository doctorRepo;
+    @Autowired
+    private ConsultorioRepository consultorioRepo;
 
     public Cita crearCita(CreateCitaDto dto) {
         Doctor doctor = doctorRepo.findById(dto.doctorId)
-            .orElseThrow(() -> new RuntimeException("Doctor no encontrado"));
+                .orElseThrow(() -> new RuntimeException("Doctor no encontrado"));
 
         Consultorio consultorio = consultorioRepo.findById(dto.consultorioId)
-            .orElseThrow(() -> new RuntimeException("Consultorio no encontrado"));
+                .orElseThrow(() -> new RuntimeException("Consultorio no encontrado"));
 
         LocalDateTime horario = dto.horarioConsulta;
         LocalDateTime inicioDia = horario.toLocalDate().atStartOfDay();
         LocalDateTime finDia = inicioDia.plusDays(1);
 
-
         if (!citaRepo.findByConsultorioIdAndHorarioConsulta(dto.consultorioId, horario).isEmpty())
             throw new RuntimeException("Consultorio ocupado en ese horario");
 
-        if (!citaRepo.findByDoctorIdAndHorarioConsultaBetween(doctor.getId(), horario, horario.plusMinutes(59)).isEmpty())
+        if (!citaRepo.findByDoctorIdAndHorarioConsultaBetween(doctor.getId(), horario, horario.plusMinutes(59))
+                .isEmpty())
             throw new RuntimeException("El doctor ya tiene una cita en ese horario");
 
         List<Cita> citasPaciente = citaRepo.findByNombrePacienteAndHorarioConsultaBetween(
-            dto.nombrePaciente, inicioDia, finDia
-        );
+                dto.nombrePaciente, inicioDia, finDia);
         for (Cita c : citasPaciente) {
             long diff = Duration.between(c.getHorarioConsulta(), horario).abs().toHours();
-            if (diff < 2) throw new RuntimeException("El paciente ya tiene una cita cercana ese día");
+            if (diff < 2)
+                throw new RuntimeException("El paciente ya tiene una cita cercana ese día");
         }
 
         long totalCitas = citaRepo.findByDoctorIdAndHorarioConsultaBetween(doctor.getId(), inicioDia, finDia).size();
-        if (totalCitas >= 8) throw new RuntimeException("El doctor ya tiene 8 citas ese día");
+        if (totalCitas >= 8)
+            throw new RuntimeException("El doctor ya tiene 8 citas ese día");
 
         Cita cita = new Cita();
         cita.setDoctor(doctor);
@@ -62,15 +66,17 @@ public class CitasService {
         return citaRepo.save(cita);
     }
 
-    public List<Cita> buscarCitas(Optional<Long> doctorId, Optional<Long> consultorioId, LocalDate fecha) {
-        LocalDateTime inicio = fecha.atStartOfDay();
-        LocalDateTime fin = inicio.plusDays(1);
+    public List<Cita> buscarCitas(Optional<Long> doctorId, Optional<Long> consultorioId, Optional<LocalDate> fecha) {
         return citaRepo.findAll().stream()
-            .filter(c -> !c.isCancelada())
-            .filter(c -> !doctorId.isPresent() || c.getDoctor().getId().equals(doctorId.get()))
-            .filter(c -> !consultorioId.isPresent() || c.getConsultorio().getId().equals(consultorioId.get()))
-            .filter(c -> !c.getHorarioConsulta().isBefore(inicio) && c.getHorarioConsulta().isBefore(fin))
-            .collect(Collectors.toList());
+                .filter(c -> !c.isCancelada())
+                .filter(c -> doctorId.map(id -> c.getDoctor().getId().equals(id)).orElse(true))
+                .filter(c -> consultorioId.map(id -> c.getConsultorio().getId().equals(id)).orElse(true))
+                .filter(c -> fecha.map(f -> {
+                    LocalDateTime inicio = f.atStartOfDay();
+                    LocalDateTime fin = inicio.plusDays(1);
+                    return !c.getHorarioConsulta().isBefore(inicio) && c.getHorarioConsulta().isBefore(fin);
+                }).orElse(true))
+                .collect(Collectors.toList());
     }
 
     public void cancelarCita(Long id) {
@@ -84,7 +90,7 @@ public class CitasService {
     }
 
     public void editarCita(Long id, CreateCitaDto nuevo) {
-        cancelarCita(id); 
-        crearCita(nuevo); 
+        cancelarCita(id);
+        crearCita(nuevo);
     }
 }

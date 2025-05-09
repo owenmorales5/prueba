@@ -24,9 +24,10 @@ import com.hospital.api.services.CitasService;
 @RestController
 @RequestMapping("/api/citas")
 public class CitaController {
-    @Autowired private CitasService citaService;
+    @Autowired
+    private CitasService citaService;
 
-    @PostMapping
+    @PostMapping("/")
     public ResponseEntity<?> crear(@RequestBody CreateCitaDto dto) {
         try {
             return ResponseEntity.ok(citaService.crearCita(dto));
@@ -35,12 +36,11 @@ public class CitaController {
         }
     }
 
-    @GetMapping
+    @GetMapping("/")
     public List<Cita> buscar(
-        @RequestParam Optional<Long> doctorId,
-        @RequestParam Optional<Long> consultorioId,
-        @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fecha
-    ) {
+            @RequestParam Optional<Long> doctorId,
+            @RequestParam Optional<Long> consultorioId,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Optional<LocalDate> fecha) {
         return citaService.buscarCitas(doctorId, consultorioId, fecha);
     }
 
